@@ -62,10 +62,26 @@ class RNShare {
         NativeModules.RNShare.shareSingle(options,(e) => {
           return reject({ error: e });
         },(e) => {
-          return resolve({
-            message: e
-          });
+          return resolve(e);
         });
+      });
+    } else {
+      throw new Exception("not implemented");
+    }
+  }
+
+  static isAvailable(serviceType){
+    if (Platform.OS === "ios") {
+      return new Promise((resolve, reject) => {
+        try {
+          NativeModules.RNShare.isAvailableForServiceType(serviceType, (e) => {
+            return reject({ error: e });
+          },(e) => {
+            return resolve(e);
+          });
+        } catch (e) {
+          return reject({ error: e });
+        }
       });
     } else {
       throw new Exception("not implemented");

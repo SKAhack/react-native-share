@@ -43,10 +43,23 @@
             [composeController setInitialText:text];
         }
 
+        [composeController setCompletionHandler:^(SLComposeViewControllerResult result) {
+          switch (result) {
+            case SLComposeViewControllerResultCancelled:
+              successCallback(@[@{ @"shared": @NO }]);
+              break;
+            case SLComposeViewControllerResultDone:
+              successCallback(@[@{ @"shared": @YES }]);
+              break;
+
+            default:
+              successCallback(@[@{ @"shared": @NO }]);
+              break;
+          }
+        }];
 
         UIViewController *ctrl = [[[[UIApplication sharedApplication] delegate] window] rootViewController];
         [ctrl presentViewController:composeController animated:YES completion:Nil];
-        successCallback(@[]);
       } else {
         NSString *errorMessage = @"Not installed";
         NSDictionary *userInfo = @{NSLocalizedFailureReasonErrorKey: NSLocalizedString(errorMessage, nil)};
@@ -66,18 +79,27 @@
           NSString *URL = [NSString stringWithFormat:@"https://www.facebook.com/sharer/sharer.php?u=%@", options[@"url"]];
           [self openScheme:URL];
         }
-
       }
-  }
-  - (void)openScheme:(NSString *)scheme {
-      UIApplication *application = [UIApplication sharedApplication];
-      NSURL *schemeURL = [NSURL URLWithString:scheme];
+}
 
-      if ([application respondsToSelector:@selector(openURL:options:completionHandler:)]) {
-          [application openURL:schemeURL options:@{} completionHandler:nil];
-          NSLog(@"Open %@: %d", schemeURL);
-      }
+- (void)openScheme:(NSString *)scheme {
+    UIApplication *application = [UIApplication sharedApplication];
+    NSURL *schemeURL = [NSURL URLWithString:scheme];
 
-  }
+    if ([application respondsToSelector:@selector(openURL:options:completionHandler:)]) {
+        [application openURL:schemeURL options:@{} completionHandler:nil];
+        NSLog(@"Open %@: %d", schemeURL);
+    }
+}
 
-  @end
+- (void)isAvailableForServiceType: (NSString *)serviceType
+                  failureCallback: (RCTResponseErrorBlock)failureCallback
+                  successCallback: (RCTResponseSenderBlock)successCallback {
+    if ([SLComposeViewController isAvailableForServiceType:serviceType]) {
+        successCallback(@[]);
+    } else {
+        failureCallback(RCTErrorWithMessage(@""));
+    }
+}
+
+@end
